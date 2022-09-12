@@ -1,9 +1,12 @@
 import pygame
 
-# Fighter class:
 class Fighter():
-    def __init__(self, x, y, name):
+    def __init__(self, x, y, name, max_hp, start_potions):
         self.name = name
+        self.hp = max_hp 
+        self.max_hp = max_hp
+        self.start_potions = start_potions
+        self.potions = start_potions
 
         # Animations
         self.action_dict = { # Number of frames per animation
