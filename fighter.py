@@ -1,12 +1,17 @@
 import pygame
+import random
+
 
 class Fighter():
-    def __init__(self, x, y, name, max_hp, start_potions):
+    def __init__(self, x, y, name, strength, max_hp, start_potions):
         self.name = name
         self.hp = max_hp 
+        self.strength = strength
         self.max_hp = max_hp
         self.start_potions = start_potions
         self.potions = start_potions
+        self.alive = True
+        self.damage = self.strength + random.randint(-5,5)
 
         # Animations
         self.action_dict = { # Number of frames per animation
@@ -32,7 +37,45 @@ class Fighter():
         self.image = self.animation_dict[self.action][self.frame_index]
         self.rect = self.image.get_rect()
         self.rect.center = (x,y)
-    
+        
+
+    def idle(self):
+        self.action = 'Idle'
+        self.frame_index = 0 # Start with the first frame
+        self.update_time = pygame.time.get_ticks()
+
+    def attack(self, target):
+        # Deal damage to the enemy
+        target.hp -= self.damage
+        
+        # Check if the target has died
+        if target.hp < 1:
+            target.hp = 0
+            target.alive = False
+            target.death()
+
+        # Run enemy hurt animation
+        else:
+            target.hurt()
+
+        # Set variables to attack animation
+        self.action = 'Attack' # switch to attack action
+        self.frame_index = 0 # start at the beginning of the sequence
+        self.update_time = pygame.time.get_ticks()
+
+
+    def hurt(self):
+            self.action = 'Hurt' # switch to hurt action
+            self.frame_index = 0 # start at the beginning of the sequence
+            self.update_time = pygame.time.get_ticks()
+
+
+    def death(self):
+        self.action = 'Death' # switch to death action
+        self.frame_index = 0 # start at the beginning of the sequence
+        self.update_time = pygame.time.get_ticks()
+        
+
     def update(self):
         animation_cd = 100
 
@@ -44,16 +87,13 @@ class Fighter():
 
         # Make sure we don't go beyond the number of frames in the list
         if self.frame_index >= len(self.animation_dict[self.action]):
-            self.frame_index = 0
+            if self.action == 'Death':
+                self.frame_index = len(self.animation_dict[self.action]) - 1
+            else:
+                self.idle()
             
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
 
-    def idle(self):
-        self.action = 'Idle'
-        self.frame_index = 0 # Start with the first frame
-        self.update_time = pygame.time.get_ticks()
-
     
-

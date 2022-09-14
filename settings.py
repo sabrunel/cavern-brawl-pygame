@@ -7,9 +7,9 @@ HEIGHT = 450
 FPS = 60
 
 # Colors
-TEXT = (253, 253, 218)
-RED = (191, 51, 6)
-GREEN = (0, 255, 0)
+TEXT_COLOR = (253, 253, 218)
+HEALTH_RED = (191, 51, 6)
+HEALTH_GREEN = (0, 255, 0)
 
 # Font
 FONT_NAME = 'Verdana'
