@@ -4,6 +4,8 @@ import random
 
 class Fighter():
     def __init__(self, x, y, name, strength, max_hp, start_potions):
+
+        # Characteristics
         self.name = name
         self.hp = max_hp 
         self.strength = strength
@@ -20,9 +22,7 @@ class Fighter():
             'Hurt': 3,
             'Death':7,
         }
-        self.update_time = pygame.time.get_ticks() #To know when the instance of the class is first created
         
-        # Load all animation images to a dictionary
         self.animation_dict = {}
         for action in self.action_dict.keys():
             temp_list = []
@@ -34,9 +34,14 @@ class Fighter():
 
         self.action = 'Idle'
         self.frame_index = 0
+
+        # Image
         self.image = self.animation_dict[self.action][self.frame_index]
         self.rect = self.image.get_rect()
         self.rect.center = (x,y)
+
+        # Creation time
+        self.update_time = pygame.time.get_ticks() 
         
 
     def idle(self):
@@ -63,7 +68,6 @@ class Fighter():
         self.frame_index = 0 # start at the beginning of the sequence
         self.update_time = pygame.time.get_ticks()
 
-
     def hurt(self):
             self.action = 'Hurt' # switch to hurt action
             self.frame_index = 0 # start at the beginning of the sequence
@@ -74,7 +78,15 @@ class Fighter():
         self.action = 'Death' # switch to death action
         self.frame_index = 0 # start at the beginning of the sequence
         self.update_time = pygame.time.get_ticks()
-        
+
+    def reset(self):
+        self.hp = self.max_hp 
+        self.potions = self.start_potions
+        self.alive = True
+        self.action = 'Idle'
+        self.frame_index = 0
+        self.update_time = pygame.time.get_ticks()
+    
 
     def update(self):
         animation_cd = 100

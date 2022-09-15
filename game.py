@@ -9,20 +9,20 @@ class Game:
         self.clock = pygame.time.Clock()
         self.stage = Stage()
 
-
     # Method that handles events
     def handle_events(self):
+        # Check if user closes the game window
         for event in pygame.event.get():
-            # Check if user closes the game window
-                if event.type == pygame.QUIT:
+            if event.type == pygame.QUIT:
                     pygame.quit()
                     sys.exit()
-
+        
             # Listen for mouse click
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    self.stage.player_input(True)
-                else:
-                    self.stage.player_input(False)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                self.stage.player_input(True)
+            else:
+                self.stage.player_input(False)
+
 
     # Method that draws the background
     def draw_background(self):
@@ -39,6 +39,7 @@ class Game:
     # Method that handles the game loop
     def run(self):
         while True:
+            
             # Call all the above methods
             self.handle_events()
             self.draw_background()
