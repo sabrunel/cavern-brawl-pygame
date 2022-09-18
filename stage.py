@@ -1,7 +1,6 @@
 import pygame
 from settings import *
 from fighter import Fighter
-from healthbar import HealthBar
 from combattext import CombatText
 from button import Button
 
@@ -23,7 +22,6 @@ class Stage():
 
         # Stage elements
         self.create_fighters()
-        self.create_healthbars()
         self.combat_text_group = pygame.sprite.Group()
         potion_img = pygame.image.load('assets/Icons/potion.png').convert_alpha()
         self.potion_btn = Button(self.display_surface, 10, 400, potion_img, 40, 40)
@@ -47,26 +45,14 @@ class Stage():
     def create_fighters(self):
         #Create an instance of each fighter type
         self.hero = Fighter(200, 350, 'Hero', 8, 30, 3)
-        self.bat = Fighter(450, 320, 'Bat', 4, 15, 2)
-        self.plaguedoctor = Fighter(600, 350,'PlagueDoctor', 5, 20, 2)
+        self.bat = Fighter(450, 320, 'Bat', 6, 15, 2)
+        self.plaguedoctor = Fighter(600, 350,'PlagueDoctor', 7, 20, 2)
 
         # Add enemies to a list
         self.enemy_list = []
         self.enemy_list.append(self.bat)
         self.enemy_list.append(self.plaguedoctor)
 
-    def draw_names(self):
-        # Draw hero name
-        draw_text(self.display_surface,f'{self.hero.name}', self.text, TEXT_COLOR, 10, 10)
-
-        # Draw enemy names
-        for count, enemy in enumerate(self.enemy_list):
-            draw_text(self.display_surface,f'{enemy.name}', self.text, TEXT_COLOR, 640, 10 + count * 50)
-
-    def create_healthbars(self):
-        self.hero_healthbar = HealthBar( 10, 30, self.hero.hp, self.hero.max_hp)
-        self.bat_healthbar = HealthBar(640, 30, self.bat.hp, self.bat.max_hp)
-        self.plaguedoctor_healthbar = HealthBar(640, 80, self.plaguedoctor.hp, self.plaguedoctor.max_hp)  
 
     def player_input(self, bool):
             # Listen for mouse click
@@ -236,14 +222,6 @@ class Stage():
 
         for enemy in self.enemy_list:
             enemy.draw(self.display_surface)
-
-        # Draw fighter names
-        self.draw_names()
-
-        # Draw healthbars
-        self.hero_healthbar.draw(self.hero.hp)
-        self.bat_healthbar.draw(self.bat.hp)
-        self.plaguedoctor_healthbar.draw(self.plaguedoctor.hp)
 
         # Draw combat text
         self.combat_text_group.draw(self.display_surface)

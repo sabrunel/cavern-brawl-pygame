@@ -1,7 +1,18 @@
 import pygame
 import random
+from settings import BORDER_RADIUS, HEALTH_BORDER, HEALTH_GREEN, HEALTH_RED
+
+# Helper functions
+def draw_health_bar(screen, pos, size, border_color, back_color, health_color, border_radius, health_ratio):
+    pygame.draw.rect(screen, back_color, (*pos, *size), 0, border_radius)
+    pygame.draw.rect(screen, border_color, (*pos, *size), 1, border_radius)
+    inner_pos  = (pos[0]+1, pos[1]+1)
+    inner_size = ((size[0]-2) * health_ratio, size[1]-2)
+    rect = (round(inner_pos[0]), round(inner_pos[1]), round(inner_size[0]), round(inner_size[1]))
+    pygame.draw.rect(screen, health_color, rect, 0, border_radius)
 
 
+# Fighter class
 class Fighter():
     def __init__(self, x, y, name, strength, max_hp, start_potions):
 
@@ -42,7 +53,14 @@ class Fighter():
 
         # Creation time
         self.update_time = pygame.time.get_ticks() 
-        
+
+    def draw_health(self, screen):
+        self.health_rect = pygame.Rect(0, 0, 100, 8)
+        self.health_rect.midbottom = self.rect.centerx, self.rect.bottom + 10
+
+        health_ratio = self.hp/self.max_hp
+        draw_health_bar(screen, self.health_rect.bottomleft, self.health_rect.size, 
+                HEALTH_BORDER, HEALTH_RED, HEALTH_GREEN, BORDER_RADIUS, health_ratio)    
 
     def idle(self):
         self.action = 'Idle'
@@ -107,5 +125,6 @@ class Fighter():
 
     def draw(self, screen):
         screen.blit(self.image, self.rect)
+        self.draw_health(screen)
 
     
