@@ -1,8 +1,10 @@
 import pygame
 from settings import *
-from fighter import Fighter
+from player import Player
+from enemy import Enemy
 from combattext import CombatText
 from button import Button
+import random
 
 
 # Helper functions
@@ -17,18 +19,25 @@ class Stage():
         # Stage setup
         self.display_surface = pygame.display.get_surface()
         self.bg = pygame.image.load('assets/Background.png').convert_alpha()
+
+        # Sprite group setup
+        self.active_sprites = pygame.sprite.Group()
+
+        # Create an instance of each fighter type
+        self.hero = Player(200, 350, 'Hero', [self.active_sprites])
+        
+        # Generate a random set of enemies
+        self.pick_enemies()
+
+        # UI elements
         self.text = pygame.font.Font(FONT_NAME, FONT_SIZE)
         self.title = pygame.font.Font(FONT_NAME, TITLE_SIZE)
-
-        # Stage elements
-        self.create_fighters()
-        self.combat_text_group = pygame.sprite.Group()
         potion_img = pygame.image.load('assets/Icons/potion.png').convert_alpha()
-        self.potion_btn = Button(self.display_surface, 10, 400, potion_img, 40, 40)
+        self.potion_btn = Button(self.display_surface, 15, 45, potion_img, 40, 40)
         
         # Turn attributes
         self.current_turn = 1
-        self.total_fighters = len(self.enemy_list) + 1
+        self.total_fighters = len(self.enemy_type_list) + 1
         self.action_cd = 0
         self.action_wait_time = 90
         self.potion_effect = 15
@@ -42,16 +51,13 @@ class Stage():
         self.is_using_potion = False
         self.target = None
 
-    def create_fighters(self):
-        #Create an instance of each fighter type
-        self.hero = Fighter(200, 350, 'Hero', 8, 30, 3)
-        self.bat = Fighter(450, 320, 'Bat', 6, 15, 2)
-        self.plaguedoctor = Fighter(600, 350,'PlagueDoctor', 7, 20, 2)
+    def pick_enemies(self):
+        self.enemy_type_list = []
 
-        # Add enemies to a list
-        self.enemy_list = []
-        self.enemy_list.append(self.bat)
-        self.enemy_list.append(self.plaguedoctor)
+        for x in enemy_x_pos:
+            enemy_name = random.choice(["Bat", "PlagueDoctor"])
+            enemy = Enemy(x, 350, enemy_name, [self.active_sprites])
+            self.enemy_type_list.append(enemy)
 
 
     def player_input(self, bool):
@@ -67,13 +73,13 @@ class Stage():
         pos = pygame.mouse.get_pos()
     
         # Target enemies to attack them
-        for index, enemy in enumerate(self.enemy_list):
+        for index, enemy in enumerate(self.enemy_type_list):
             if enemy.rect.collidepoint(pos):
                 #pygame.mouse.set_visible(False)
                 #screen.blit(sword_img, pos)
                 if self.player_clicked and enemy.alive:
                     self.is_attacking = True
-                    self.target = self.enemy_list[index]
+                    self.target = self.enemy_type_list[index]
 
     def player_actions(self):
         # Player action
@@ -90,8 +96,8 @@ class Stage():
                         self.action_cd = 0
 
                         # Create the damage text
-                        dmg_txt = CombatText(self.target.rect.centerx, self.target.rect.y, self.text,  str(self.hero.damage), HEALTH_RED)
-                        self.combat_text_group.add(dmg_txt)  
+                        CombatText(self.target.rect.centerx, self.target.rect.y, [self.active_sprites], self.text,  str(self.hero.damage), HEALTH_RED)
+                        #self.combat_text_group.add(dmg_txt)  
 
                     # Use potion
                     if self.is_using_potion == True:
@@ -106,8 +112,7 @@ class Stage():
                             self.hero.potions -= 1
 
                             # Create the healing text
-                            heal_txt = CombatText(self.hero.rect.centerx, self.hero.rect.y, self.text,  str(heal_amount), HEALTH_GREEN)
-                            self.combat_text_group.add(heal_txt)
+                            CombatText(self.hero.rect.centerx, self.hero.rect.y, [self.active_sprites], self.text,  str(heal_amount), HEALTH_GREEN)
 
                             self.current_turn += 1
                             self.action_cd = 0
@@ -118,7 +123,7 @@ class Stage():
 
 
     def enemy_actions(self):
-        for index, enemy in enumerate(self.enemy_list):
+        for index, enemy in enumerate(self.enemy_type_list):
             if self.current_turn == 2 + index:
                 if enemy.alive:
                     self.action_cd += 1
@@ -137,8 +142,7 @@ class Stage():
                             self.action_cd = 0 
 
                             # Create the healing text
-                            heal_txt = CombatText(enemy.rect.centerx, enemy.rect.y,  self.text, str(heal_amount), HEALTH_GREEN)
-                            self.combat_text_group.add(heal_txt)
+                            CombatText(enemy.rect.centerx, enemy.rect.y,  [self.active_sprites], self.text, str(heal_amount), HEALTH_GREEN)
 
                         # Bandit attack
                         else:
@@ -147,8 +151,8 @@ class Stage():
                             self.action_cd = 0       
 
                             # Create the damage text
-                            dmg_txt = CombatText(self.hero.rect.centerx, self.hero.rect.y, self.text, str(enemy.damage), HEALTH_RED)
-                            self.combat_text_group.add(dmg_txt)                 
+                            CombatText(self.hero.rect.centerx, self.hero.rect.y, [self.active_sprites], self.text, str(enemy.damage), HEALTH_RED)
+                                            
 
 
                 else:
@@ -161,7 +165,7 @@ class Stage():
 
         # Check whether all enemies are dead
         alive_enemies = 0
-        for enemy in self.enemy_list:
+        for enemy in self.enemy_type_list:
             if enemy.alive:
                 alive_enemies += 1
 
@@ -185,10 +189,15 @@ class Stage():
             self.outcome = 0
             self.current_turn = 1
 
-            # Reset characters
+            # Reset the player character
             self.hero.reset()
-            self.bat.reset()
-            self.plaguedoctor.reset()
+
+            # Make sure to remove any remaining enemy before picking a new combination
+            for enemy in self.enemy_type_list:
+                enemy.kill()
+
+            # Select new enemies
+            self.pick_enemies()
 
             # Reset stage state
             self.is_attacking = False
@@ -210,25 +219,21 @@ class Stage():
             self.end_turn()
 
         self.end_combat()
-        self.hero.update()
-        for enemy in self.enemy_list:
-            enemy.update()
-        self.combat_text_group.update()
+        self.active_sprites.update()
         self.reset_stage()
 
     def draw(self):
-        # Draw fighters
-        self.hero.draw(self.display_surface)
+        # Draw visible sprites
+        self.active_sprites.draw(self.display_surface)
 
-        for enemy in self.enemy_list:
-            enemy.draw(self.display_surface)
-
-        # Draw combat text
-        self.combat_text_group.draw(self.display_surface)
+        # Draw health bars
+        self.hero.draw_health(self.display_surface)
+        for enemy in self.enemy_type_list:
+            enemy.draw_health(self.display_surface)
 
         # Draw potion button
         self.potion_btn.draw()
-        draw_text(self.display_surface, str(self.hero.potions), self.text, TEXT_COLOR, 55, 400)
+        draw_text(self.display_surface, str(self.hero.potions), self.text, TEXT_COLOR, 55, 45)
 
 
 

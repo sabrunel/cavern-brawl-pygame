@@ -11,7 +11,7 @@ Each package can be installed using the Pip command, or in conda with:
 `conda create --name <env> --file requirements.txt`
 
 
-### Run the generator
+### Run the game
 
 Open the command line and navigate to the folder containing `main.py`
 
@@ -24,6 +24,6 @@ Select an enemy to attack it, then watch as the turn unfolds. Keep attacking ene
 
 ## What I learned
 
-With this project I wanted to get a better understanding of OOP with Python, while creating something fun.
+With this project I wanted to get a better understanding of OOP with Python, while creating something fun in the process.
 
 

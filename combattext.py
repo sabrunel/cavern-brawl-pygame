@@ -1,8 +1,8 @@
 import pygame
 
 class CombatText(pygame.sprite.Sprite):
-    def __init__(self, x, y, font, damage, colour):
-        pygame.sprite.Sprite.__init__(self)
+    def __init__(self, x, y, groups, font, damage, colour):
+        pygame.sprite.Sprite.__init__(self, groups)
         self.image = font.render(damage, True, colour)
         self.rect = self.image.get_rect()
         self.rect.center = (x,y)
