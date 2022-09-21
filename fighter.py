@@ -1,5 +1,5 @@
 import pygame
-from settings import BORDER_RADIUS, HEALTH_BORDER, HEALTH_GREEN, HEALTH_RED, BORDER_WIDTH
+from settings import BORDER_RADIUS, HEALTH_BORDER, HEALTH_GREEN, HEALTH_RED, BORDER_WIDTH, animation_frames
 
 
 
@@ -20,19 +20,21 @@ def draw_health_bar(screen, pos, size, health_ratio):
 class Fighter(pygame.sprite.Sprite):
     def __init__(self, name, groups):
         super().__init__(groups)
-
         self.name = name
         self.alive = True
 
         # Animations
-        self.action_dict = { # Number of frames per animation
-            'Idle': 9,
-            'Attack': 7,
-            'Hurt': 3,
-            'Death':7,
-        }
-        
+        self.action = 'Idle'
+        self.frame_index = 0
+        self.load_graphics()
+
+        # Creation time
+        self.update_time = pygame.time.get_ticks() 
+
+    def load_graphics(self):
+        self.action_dict = animation_frames
         self.animation_dict = {}
+
         for action in self.action_dict.keys():
             temp_list = []
             for i in range(1, self.action_dict[action] + 1):
@@ -40,16 +42,10 @@ class Fighter(pygame.sprite.Sprite):
                 img = pygame.transform.scale(img, (img.get_width() * 2, img.get_height() * 2))
                 temp_list.append(img)
             self.animation_dict.update({action : temp_list})
-
-        self.action = 'Idle'
-        self.frame_index = 0
-
-        # Image
+        
         self.image = self.animation_dict[self.action][self.frame_index]
         self.rect = self.image.get_rect()
 
-        # Creation time
-        self.update_time = pygame.time.get_ticks() 
 
     def idle(self):
         self.action = 'Idle'
@@ -74,6 +70,7 @@ class Fighter(pygame.sprite.Sprite):
                 self.action = 'Attack' # switch to attack action
                 self.frame_index = 0 # start at the beginning of the sequence
                 self.update_time = pygame.time.get_ticks()
+
 
     def hurt(self):
             self.action = 'Hurt' # switch to hurt action

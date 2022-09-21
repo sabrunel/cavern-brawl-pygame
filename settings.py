@@ -20,13 +20,23 @@ BORDER_RADIUS = 10
 BORDER_WIDTH = 1
 
 # Game 
-PLAYER_MAX_HP = 30
+PLAYER_MAX_HP = 40
 PLAYER_STRENGTH = 8
 PLAYER_START_POTIONS = 3
+POTION_EFFECT = 15
 
-enemy_x_pos = [450, 600]
+
+animation_frames =  { # Number of images per animation
+    'Idle': 9,
+    'Attack': 7,
+    'Hurt': 3,
+    'Death':7,
+}
+
+enemy_x_pos = [525, 650]
 
 enemy_info = {
     "Bat": {"strength": 6, "max_hp": 15, "start_potions": 0},
-    "PlagueDoctor": {"strength": 7, "max_hp": 25, "start_potions": 1},
+    "Monster": {"strength": 6, "max_hp": 20, "start_potions": 0},
+    "PlagueDoctor": {"strength": 7, "max_hp": 20, "start_potions": 1},
 }

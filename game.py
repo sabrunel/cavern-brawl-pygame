@@ -19,32 +19,16 @@ class Game:
         
             # Listen for mouse click
             if event.type == pygame.MOUSEBUTTONDOWN:
-                self.stage.player_input(True)
+                self.stage.player_clicked = True
             else:
-                self.stage.player_input(False)
-
-
-    # Method that draws the background
-    def draw_background(self):
-        self.screen.blit(self.stage.bg, (0,0))  
-
-    # Method that handles game logic and updates game elements
-    def update(self):
-        self.stage.update()
-        
-    # Method that handles display
-    def display(self):
-        self.stage.draw()
-        
+                self.stage.player_clicked = False
+     
     # Method that handles the game loop
     def run(self):
         while True:
-            
-            # Call all the above methods
+
             self.handle_events()
-            self.draw_background()
-            self.update()
-            self.display()
+            self.stage.run()
             pygame.display.update()
             self.clock.tick(FPS)
 

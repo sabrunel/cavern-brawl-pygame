@@ -12,7 +12,7 @@ class Enemy(Fighter):
         self.strength = enemy_info[self.name]["strength"]
         self.max_hp = enemy_info[self.name]["max_hp"]
         self.start_potions = enemy_info[self.name]["start_potions"] 
-        self.damage = self.strength + random.randint(-5,5)
+        self.damage = self.strength + random.randint(-4,4)
 
         self.hp = self.max_hp
         self.potions = self.start_potions
