@@ -2,6 +2,7 @@ import pygame, sys
 from settings import *
 from stage import Stage
 
+
 class Game:
     def __init__(self, title:str):
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -19,9 +20,9 @@ class Game:
         
             # Listen for mouse click
             if event.type == pygame.MOUSEBUTTONDOWN:
-                self.stage.player_clicked = True
+               self.stage.player_clicked = True
             else:
-                self.stage.player_clicked = False
+               self.stage.player_clicked = False
      
     # Method that handles the game loop
     def run(self):

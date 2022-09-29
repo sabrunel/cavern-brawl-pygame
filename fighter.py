@@ -18,21 +18,23 @@ def draw_health_bar(screen, pos, size, health_ratio):
 
 # Fighter class
 class Fighter(pygame.sprite.Sprite):
-    def __init__(self, name, groups):
+    def __init__(self, name, groups, collision_groups):
         super().__init__(groups)
         self.name = name
-        self.alive = True
 
         # Animations
         self.action = 'Idle'
         self.frame_index = 0
         self.load_graphics()
 
+        # Group setup
+        self.collision_groups = collision_groups
+
         # Creation time
         self.update_time = pygame.time.get_ticks() 
 
     def load_graphics(self):
-        self.action_dict = animation_frames
+        self.action_dict = animation_frames[self.name]
         self.animation_dict = {}
 
         for action in self.action_dict.keys():
@@ -47,58 +49,7 @@ class Fighter(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
 
-    def idle(self):
-        self.action = 'Idle'
-        self.frame_index = 0 # Start with the first frame
-        self.update_time = pygame.time.get_ticks()
 
-    def attack(self, target):
-                # Deal damage to the enemy
-                target.hp -= self.damage
-                
-                # Check if the target has died
-                if target.hp < 1:
-                    target.hp = 0
-                    target.alive = False
-                    target.death()
-
-                # Run enemy hurt animation
-                else:
-                    target.hurt()
-
-                # Set variables to attack animation
-                self.action = 'Attack' # switch to attack action
-                self.frame_index = 0 # start at the beginning of the sequence
-                self.update_time = pygame.time.get_ticks()
-
-
-    def hurt(self):
-            self.action = 'Hurt' # switch to hurt action
-            self.frame_index = 0 # start at the beginning of the sequence
-            self.update_time = pygame.time.get_ticks()
-
-
-    def death(self):
-        self.action = 'Death' # switch to death action
-        self.frame_index = 0 # start at the beginning of the sequence
-        self.update_time = pygame.time.get_ticks()
-    
-
-    def update(self):
-        animation_cd = 100
-
-        # Move through the animation frames
-        self.image = self.animation_dict[self.action][self.frame_index]
-        if pygame.time.get_ticks() - self.update_time > animation_cd:
-            self.update_time = pygame.time.get_ticks()
-            self.frame_index += 1
-
-        # Make sure we don't go beyond the number of frames in the list
-        if self.frame_index >= len(self.animation_dict[self.action]):
-            if self.action == 'Death':
-                self.frame_index = len(self.animation_dict[self.action]) - 1
-            else:
-                self.idle()
 
 
     

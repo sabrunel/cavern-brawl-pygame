@@ -1,7 +1,8 @@
 
 # Window
-WIDTH = 800
-HEIGHT = 450
+WIDTH = 960
+HEIGHT = 540
+
 
 # Frame rate
 FPS = 60
@@ -27,13 +28,13 @@ POTION_EFFECT = 15
 
 
 animation_frames =  { # Number of images per animation
-    'Idle': 9,
-    'Attack': 7,
-    'Hurt': 3,
-    'Death':7,
+    'Hero': {'Idle': 9, 'Run': 8,'Attack': 7,'Hurt': 3,'Death':7,},
+    'Bat': {'Idle': 9,'Run': 9,'Attack': 7,'Hurt': 3,'Death':7,},
+    'Monster': {'Idle': 9,'Run': 8,'Attack': 7,'Hurt': 3,'Death':7,},
+    'PlagueDoctor': {'Idle': 9,'Run': 6,'Attack': 7,'Hurt': 3,'Death':7},
 }
 
-enemy_x_pos = [525, 650]
+enemy_x_pos = [650, 775]
 
 enemy_info = {
     "Bat": {"strength": 6, "max_hp": 15, "start_potions": 0},
