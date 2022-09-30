@@ -1,19 +1,6 @@
 import pygame
-from settings import BORDER_RADIUS, HEALTH_BORDER, HEALTH_GREEN, HEALTH_RED, BORDER_WIDTH, animation_frames
+from settings import animation_frames
 
-
-
-# Helper functions
-def draw_health_bar(screen, pos, size, health_ratio):
-    """ 
-    This function draws the different components of a healthbar: background, foreground and border
-    """
-    pygame.draw.rect(screen, HEALTH_RED, (*pos, *size), 0, BORDER_RADIUS)
-    pygame.draw.rect(screen, HEALTH_BORDER, (*pos, *size), BORDER_WIDTH, BORDER_RADIUS)
-    inner_pos  = (pos[0]+1, pos[1]+1)
-    inner_size = ((size[0]-2) * health_ratio, size[1]-2)
-    rect = (round(inner_pos[0]), round(inner_pos[1]), round(inner_size[0]), round(inner_size[1]))
-    pygame.draw.rect(screen, HEALTH_GREEN, rect, 0, BORDER_RADIUS)
 
 
 # Fighter class
@@ -26,6 +13,7 @@ class Fighter(pygame.sprite.Sprite):
         self.action = 'Idle'
         self.frame_index = 0
         self.load_graphics()
+        self.animation_cooldown = 80
 
         # Group setup
         self.collision_groups = collision_groups
@@ -48,6 +36,16 @@ class Fighter(pygame.sprite.Sprite):
         self.image = self.animation_dict[self.action][self.frame_index]
         self.rect = self.image.get_rect()
 
+    def hurt(self):
+            self.action = 'Hurt' # switch to hurt action
+            self.frame_index = 0 # start at the beginning of the sequence
+            self.update_time = pygame.time.get_ticks()
+
+    def death(self):
+        self.action = 'Death' # switch to death action
+        self.frame_index = 0 # start at the beginning of the sequence
+        self.update_time = pygame.time.get_ticks()
+        self.kill()
 
 
 

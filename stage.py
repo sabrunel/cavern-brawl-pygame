@@ -1,19 +1,16 @@
 import pygame
+import random
+
+# Settings and helper functions
 from settings import *
+from helper import draw_text
+
+# Classes
 from player import Player
 from enemy import Enemy
 from combattext import CombatText
 from button import Button
-import random
 
-
-# Helper functions
-def draw_text(screen, text, font, text_color, x, y):
-    """ 
-    This function draws an input text to the screen
-    """
-    img = font.render(text, False, text_color)
-    screen.blit(img, (x, y))
 
 # Main class
 class Stage():
@@ -41,32 +38,36 @@ class Stage():
         self.hero = pygame.sprite.GroupSingle()
         self.enemies = pygame.sprite.Group()
 
-        Player(150, 350, 'Hero', [self.hero], self.enemies)
+        Player(150, GROUND_Y, 'Hero', [self.hero], self.enemies)
         
         for x in enemy_x_pos:
             enemy_name = random.choice(["Bat", "Monster", "PlagueDoctor"])
-            Enemy(x, 350, enemy_name, [self.enemies], self.hero)
+            Enemy(x, GROUND_Y, enemy_name, [self.enemies], self.hero)
         
 
     def update(self):
-        self.hero.update()
+        self.hero.update(self.display_surface)
         self.enemies.update()
        
 
     def draw(self):
-        # Draw fighters
-        self.hero.draw(self.display_surface)
-        self.enemies.draw(self.display_surface)
-
-        # Draw health bars
+        # Draw UI elements
         self.hero.sprite.draw_health(self.display_surface)
         for enemy in self.enemies.sprites():
             enemy.draw_health(self.display_surface)
 
-        # Draw potion button
         self.potion_btn.draw()
         draw_text(self.display_surface, str(self.hero.sprite.potions), self.text, TEXT_COLOR, 55, 45)
+
+        # Draw fighters
+        self.enemies.draw(self.display_surface)
+        self.hero.draw(self.display_surface)
      
+        # Draw hitboxes
+        pygame.draw.rect(self.display_surface, "red", self.hero.sprite.hitbox, 2)
+        
+
+
 
     def run(self):
         self.draw_background()

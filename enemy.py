@@ -1,14 +1,19 @@
 import pygame
 import random
-from fighter import Fighter, draw_health_bar
+
+# Settings and helper functions
 from settings import enemy_info
+from helper import draw_health_bar
+
+# Classes
+from fighter import Fighter
 
 class Enemy(Fighter):
     def __init__(self, x, y, name, groups, collision_groups):
         super().__init__(name, groups, collision_groups)
 
         # Movement
-        self.speed = 6
+        self.velocity = 6
         self.direction = pygame.math.Vector2(0,0)
 
        # Characteristics
@@ -19,26 +24,22 @@ class Enemy(Fighter):
         self.hp = self.max_hp
 
        # Enemy location
-        self.rect.topleft = (x,y)
+        self.rect.bottomleft = (x,y)
 
-    def move(self):
-        if self.direction[0] != 0:
-            self.action = 'Run'
-            self.rect.x += self.direction[0] * self.speed
-        else:
-            self.action = 'Idle'
 
     def animate(self):
-        animation_cd = 80
-
         # Move through the animation frames  
-        if pygame.time.get_ticks() - self.update_time > animation_cd:
+        if pygame.time.get_ticks() - self.update_time > self.animation_cooldown:
             self.update_time = pygame.time.get_ticks()
             self.frame_index += 1
 
         # Make sure we don't go beyond the number of frames in the list
         if self.frame_index >= len(self.animation_dict[self.action]):
-            self.frame_index = 0
+            if self.action == 'Death':
+                self.frame_index = len(self.animation_dict[self.action]) - 1
+            else:
+                self.action = 'Idle'
+                self.frame_index = 0
 
         self.image = self.animation_dict[self.action][self.frame_index]
 
@@ -59,5 +60,4 @@ class Enemy(Fighter):
 
 
     def update(self):
-            self.move()
             self.animate()
