@@ -2,7 +2,7 @@ import pygame
 import random
 
 # Settings and helper functions
-from settings import PLAYER_MAX_HP, PLAYER_START_POTIONS, PLAYER_STRENGTH, GROUND_Y
+from settings import PLAYER_MAX_HP, PLAYER_STRENGTH, GROUND_Y, WIDTH
 from helper import draw_health_bar
 
 # Classes
@@ -16,7 +16,7 @@ class Player(Fighter):
         # Movement
         self.velocity = 6
         self.velocity_y = -20
-        self.gravity = 0.8
+        self.gravity = 0.9
         self.direction = pygame.math.Vector2(0,0)
         self.faces_right = True
 
@@ -29,17 +29,15 @@ class Player(Fighter):
         # Characteristics
         self.name = name
         self.max_hp = PLAYER_MAX_HP
-        self.strength = PLAYER_STRENGTH
-        self.start_potions = PLAYER_START_POTIONS 
-        self.damage = self.strength + random.randint(-5,5)
-
         self.hp = self.max_hp
-        self.potions = self.start_potions
+        self.strength = PLAYER_STRENGTH
+        self.damage = self.strength + random.randint(-5,5)
+        
 
         # Player location
         self.rect.bottomleft = (x,y)
         self.hitbox = pygame.Rect((self.rect.left + 24, self.rect.top + 50), (42, 75))
-        self.attack_rect = pygame.Rect(self.hitbox.left, self.hitbox.top, self.hitbox.width, self.hitbox.height)
+        self.attack_rect = pygame.Rect(self.hitbox.left, self.hitbox.top, self.hitbox.width * 2, self.hitbox.height)
         
 
     def player_input(self, screen):
@@ -62,7 +60,6 @@ class Player(Fighter):
 
                 if keys[pygame.K_p]:
                     self.attack(screen)
-                    print('attack')
 
             if keys[pygame.K_SPACE] and not self.is_jumping:
                 self.jump()
@@ -96,13 +93,12 @@ class Player(Fighter):
     def run(self):
         self.hitbox.x += self.direction[0] * self.velocity
 
-        # Check horizontal collisions with enemies
-        for sprite in self.collision_groups:
-            if sprite.rect.colliderect(self.hitbox):
-                if self.direction[0] > 0: # player was moving right
-                    self.hitbox.right = sprite.rect.left
-                if self.direction[0] < 0: # player was moving left
-                    self.hitbox.left = sprite.rect.right
+        # Make sure the characters stays on the screen
+        if self.hitbox.right >= WIDTH:
+            self.hitbox.right = WIDTH
+
+        if self.hitbox.left <= 0:
+            self.hitbox.left = 0
 
     def jump(self):
         self.is_jumping = True
@@ -115,7 +111,7 @@ class Player(Fighter):
         self.attack_time = pygame.time.get_ticks()
 
         for sprite in self.collision_groups:
-            if sprite.rect.colliderect(self.attack_rect):
+            if sprite.hitbox.colliderect(self.attack_rect):
                 # Deal damage to the enemy
                 sprite.hp -= self.damage
                 
@@ -129,7 +125,7 @@ class Player(Fighter):
                 else:
                     sprite.hurt()
 
-        pygame.draw.rect(screen, "green", self.attack_rect, 2)
+        #pygame.draw.rect(screen, "green", self.attack_rect, 2)
 
            
     def cooldown(self):
@@ -153,14 +149,12 @@ class Player(Fighter):
             self.image = image
             self.rect.left = self.hitbox.left - 24
             self.rect.top = self.hitbox.top - 50
-            self.attack_rect.left = self.hitbox.right
-            self.attack_rect.top = self.hitbox.top
+            self.attack_rect.topleft = self.hitbox.topleft
         else:
             self.image = pygame.transform.flip(image, True, False)
             self.rect.right = self.hitbox.right + 24
             self.rect.top = self.hitbox.top - 50
-            self.attack_rect.right = self.hitbox.left
-            self.attack_rect.top = self.hitbox.top
+            self.attack_rect.topright = self.hitbox.topright
             
     
 

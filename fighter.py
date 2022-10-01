@@ -45,7 +45,6 @@ class Fighter(pygame.sprite.Sprite):
         self.action = 'Death' # switch to death action
         self.frame_index = 0 # start at the beginning of the sequence
         self.update_time = pygame.time.get_ticks()
-        self.kill()
 
 
 

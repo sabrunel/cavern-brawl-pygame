@@ -12,9 +12,10 @@ def draw_health_bar(screen, pos, size, health_ratio):
     """ 
     This function draws the different components of a healthbar: background, foreground and border
     """
-    pygame.draw.rect(screen, HEALTH_RED, (*pos, *size), 0, BORDER_RADIUS)
-    pygame.draw.rect(screen, HEALTH_BORDER, (*pos, *size), BORDER_WIDTH, BORDER_RADIUS)
-    inner_pos  = (pos[0]+1, pos[1]+1)
-    inner_size = ((size[0]-2) * health_ratio, size[1]-2)
-    rect = (round(inner_pos[0]), round(inner_pos[1]), round(inner_size[0]), round(inner_size[1]))
-    pygame.draw.rect(screen, HEALTH_GREEN, rect, 0, BORDER_RADIUS)
+    pygame.draw.rect(screen, HEALTH_BORDER, (*pos, *size))
+    inner_x = pos[0]+ BORDER_WIDTH
+    inner_y = pos[1]+ BORDER_WIDTH
+    inner_w = size[0] - BORDER_WIDTH * 2
+    inner_h = size[1] - BORDER_WIDTH * 2
+    pygame.draw.rect(screen, HEALTH_GREY, ((inner_x, inner_y), (inner_w, inner_h)))
+    pygame.draw.rect(screen, HEALTH_RED, ((inner_x, inner_y), (inner_w * health_ratio,inner_h)))

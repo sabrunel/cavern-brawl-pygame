@@ -3,13 +3,10 @@ import random
 
 # Settings and helper functions
 from settings import *
-from helper import draw_text
 
 # Classes
 from player import Player
 from enemy import Enemy
-from combattext import CombatText
-from button import Button
 
 
 # Main class
@@ -27,8 +24,6 @@ class Stage():
         # UI elements
         self.text = pygame.font.Font(FONT_NAME, FONT_SIZE)
         self.title = pygame.font.Font(FONT_NAME, TITLE_SIZE)
-        potion_img = pygame.image.load('assets/Icons/potion.png').convert_alpha()
-        self.potion_btn = Button(self.display_surface, 15, 45, potion_img, 40, 40)
         
 
     def draw_background(self):
@@ -40,9 +35,10 @@ class Stage():
 
         Player(150, GROUND_Y, 'Hero', [self.hero], self.enemies)
         
-        for x in enemy_x_pos:
+        for x in range(1,4):
             enemy_name = random.choice(["Bat", "Monster", "PlagueDoctor"])
-            Enemy(x, GROUND_Y, enemy_name, [self.enemies], self.hero)
+            start_position = random.choice([WIDTH + x, -x])
+            Enemy(start_position, GROUND_Y, enemy_name, [self.enemies], self.hero)
         
 
     def update(self):
@@ -56,15 +52,15 @@ class Stage():
         for enemy in self.enemies.sprites():
             enemy.draw_health(self.display_surface)
 
-        self.potion_btn.draw()
-        draw_text(self.display_surface, str(self.hero.sprite.potions), self.text, TEXT_COLOR, 55, 45)
-
         # Draw fighters
         self.enemies.draw(self.display_surface)
         self.hero.draw(self.display_surface)
      
         # Draw hitboxes
-        pygame.draw.rect(self.display_surface, "red", self.hero.sprite.hitbox, 2)
+        #pygame.draw.rect(self.display_surface, "red", self.hero.sprite.hitbox, 2)
+        #for enemy in self.enemies.sprites():
+        #   pygame.draw.rect(self.display_surface, "red", enemy.hitbox, 2)
+
         
 
 
