@@ -37,9 +37,9 @@ class Fighter(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
     def hurt(self):
-            self.action = 'Hurt' # switch to hurt action
-            self.frame_index = 0 # start at the beginning of the sequence
-            self.update_time = pygame.time.get_ticks()
+        self.action = 'Hurt' # switch to hurt action
+        self.frame_index = 0 # start at the beginning of the sequence
+        self.update_time = pygame.time.get_ticks()
 
     def death(self):
         self.action = 'Death' # switch to death action

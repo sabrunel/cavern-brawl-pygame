@@ -19,6 +19,7 @@ class Enemy(Fighter):
         self.max_hp = enemy_info[self.name]["max_hp"]
         self.hp = self.max_hp
         self.damage = self.strength + random.randint(-4,4)
+        self.hit = False
         
         # Movement
         self.velocity = enemy_info[self.name]["velocity"]
@@ -40,12 +41,15 @@ class Enemy(Fighter):
             self.faces_right = True
 
     def set_status(self):
-        if self.alive:
+        if self.alive and not self.hit:
             if self.direction[0] != 0:
                 self.action = 'Run'
                 
             else:
                 self.action = 'Idle'
+
+
+            
        
     def run(self):
         self.hitbox.x += self.direction[0] * self.velocity
@@ -72,6 +76,11 @@ class Enemy(Fighter):
                 self.frame_index = len(self.animation_dict[self.action]) - 1
                 self.rect.size = (0,0)
                 self.hitbox.size = (0,0)
+
+            elif self.action == 'Hurt':
+                self.hit = False
+                self.frame_index = 0
+
             else:
                 self.frame_index = 0
 

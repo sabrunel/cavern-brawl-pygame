@@ -1,3 +1,4 @@
+from tkinter import E
 import pygame
 import random
 
@@ -22,7 +23,7 @@ class Player(Fighter):
 
         # Status
         self.is_jumping = False
-        self.is_attacking = False
+        self.attacking = False
         self.attack_time = 0
         self.attack_cooldown = 400
 
@@ -43,7 +44,7 @@ class Player(Fighter):
     def player_input(self, screen):
             keys = pygame.key.get_pressed() 
 
-            if not self.is_attacking:
+            if not self.attacking:
 
                 if keys[pygame.K_d]:
                     self.direction[0] = 1
@@ -76,7 +77,7 @@ class Player(Fighter):
         else:
             self.action = 'Idle'
 
-        if self.is_attacking:
+        if self.attacking:
             self.action = 'Attack'
 
 
@@ -107,7 +108,7 @@ class Player(Fighter):
 
 
     def attack(self, screen):
-        self.is_attacking = True
+        self.attacking = True
         self.attack_time = pygame.time.get_ticks()
 
         for sprite in self.collision_groups:
@@ -124,13 +125,15 @@ class Player(Fighter):
                 # Run enemy hurt animation
                 else:
                     sprite.hurt()
-
+                    sprite.hit = True
+     
+            
         #pygame.draw.rect(screen, "green", self.attack_rect, 2)
 
            
     def cooldown(self):
          if pygame.time.get_ticks() - self.attack_time >= self.attack_cooldown:
-                self.is_attacking = False
+                self.attacking = False
 
 
     def animate(self):
