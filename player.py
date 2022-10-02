@@ -11,8 +11,8 @@ from fighter import Fighter
 
 
 class Player(Fighter):
-    def __init__(self, x, y, name, groups, collision_groups):
-        super().__init__(name, groups, collision_groups)
+    def __init__(self, x, y, name, groups, attackable_sprites, collectible_sprites):
+        super().__init__(name, groups, attackable_sprites)
 
         # Movement
         self.velocity = 6
@@ -22,10 +22,10 @@ class Player(Fighter):
         self.faces_right = True
 
         # Status
-        self.is_jumping = False
+        self.jumping = False
         self.attacking = False
-        self.attack_time = 0
-        self.attack_cooldown = 400
+        self.can_pick_collectible = True
+        
 
         # Characteristics
         self.name = name
@@ -33,13 +33,15 @@ class Player(Fighter):
         self.hp = self.max_hp
         self.strength = PLAYER_STRENGTH
         self.damage = self.strength + random.randint(-5,5)
-        
 
         # Player location
         self.rect.bottomleft = (x,y)
         self.hitbox = pygame.Rect((self.rect.left + 24, self.rect.top + 50), (42, 75))
         self.attack_rect = pygame.Rect(self.hitbox.left, self.hitbox.top, self.hitbox.width * 2, self.hitbox.height)
         
+        # Progress
+        self.collectible_sprites = collectible_sprites
+        self.killed_enemies = 0
 
     def player_input(self, screen):
             keys = pygame.key.get_pressed() 
@@ -60,18 +62,21 @@ class Player(Fighter):
                     self.direction[0] = 0
 
                 if keys[pygame.K_p]:
-                    self.attack(screen)
+                    self.attack()
 
-            if keys[pygame.K_SPACE] and not self.is_jumping:
+
+            if keys[pygame.K_SPACE] and not self.jumping: 
                 self.jump()
                 
-
+    def attack(self):
+        self.attacking = True
+        self.attack_time = pygame.time.get_ticks()
 
     def set_status(self):
         if self.direction[1] != 0:
-            self.action = 'Run'
+            self.action = 'Jump'
 
-        if self.direction[0] != 0:
+        if self.direction[0] != 0 and not self.jumping: # avoids triggering the running animation while in the air
             self.action = 'Run'
             
         else:
@@ -80,7 +85,6 @@ class Player(Fighter):
         if self.attacking:
             self.action = 'Attack'
 
-
     def apply_gravity(self):
         self.direction[1] += self.gravity
         self.hitbox.y += self.direction[1]
@@ -88,12 +92,11 @@ class Player(Fighter):
          # Check collision with the ground
         if self.rect.bottom >= GROUND_Y:
             self.rect.bottom = GROUND_Y
-            self.is_jumping = False
+            self.jumping = False
             self.direction[1] = 0
 
     def run(self):
         self.hitbox.x += self.direction[0] * self.velocity
-
         # Make sure the characters stays on the screen
         if self.hitbox.right >= WIDTH:
             self.hitbox.right = WIDTH
@@ -102,39 +105,8 @@ class Player(Fighter):
             self.hitbox.left = 0
 
     def jump(self):
-        self.is_jumping = True
+        self.jumping = True
         self.direction[1] = self.velocity_y
-
-
-
-    def attack(self, screen):
-        self.attacking = True
-        self.attack_time = pygame.time.get_ticks()
-
-        for sprite in self.collision_groups:
-            if sprite.hitbox.colliderect(self.attack_rect):
-                # Deal damage to the enemy
-                sprite.hp -= self.damage
-                
-                # Check if the target has died
-                if sprite.hp < 1:
-                    sprite.hp = 0
-                    sprite.alive = False
-                    sprite.death()
-
-                # Run enemy hurt animation
-                else:
-                    sprite.hurt()
-                    sprite.hit = True
-     
-            
-        #pygame.draw.rect(screen, "green", self.attack_rect, 2)
-
-           
-    def cooldown(self):
-         if pygame.time.get_ticks() - self.attack_time >= self.attack_cooldown:
-                self.attacking = False
-
 
     def animate(self):
         # Move through the animation frames  
@@ -173,7 +145,6 @@ class Player(Fighter):
 
     def update(self, screen):
         self.player_input(screen)
-        self.cooldown()
         self.apply_gravity()
         self.set_status()
         self.animate()

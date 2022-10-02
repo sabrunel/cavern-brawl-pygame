@@ -1,11 +1,11 @@
 import pygame
-from settings import animation_frames
+from settings import character_animation_frames
 
 
 
 # Fighter class
 class Fighter(pygame.sprite.Sprite):
-    def __init__(self, name, groups, collision_groups):
+    def __init__(self, name, groups, attackable_sprites):
         super().__init__(groups)
         self.name = name
 
@@ -16,19 +16,19 @@ class Fighter(pygame.sprite.Sprite):
         self.animation_cooldown = 80
 
         # Group setup
-        self.collision_groups = collision_groups
+        self.attackable_sprites = attackable_sprites
 
         # Creation time
         self.update_time = pygame.time.get_ticks() 
 
     def load_graphics(self):
-        self.action_dict = animation_frames[self.name]
+        self.action_dict = character_animation_frames[self.name]
         self.animation_dict = {}
 
         for action in self.action_dict.keys():
             temp_list = []
             for i in range(1, self.action_dict[action] + 1):
-                img = pygame.image.load(f'assets/{self.name}/{action}/0{i}.png')
+                img = pygame.image.load(f'assets/characters/{self.name}/{action}/0{i}.png')
                 img = pygame.transform.scale(img, (img.get_width() * 2, img.get_height() * 2))
                 temp_list.append(img)
             self.animation_dict.update({action : temp_list})

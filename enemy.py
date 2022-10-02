@@ -9,8 +9,8 @@ from helper import draw_health_bar
 from fighter import Fighter
 
 class Enemy(Fighter):
-    def __init__(self, x, y, name, groups, collision_groups):
-        super().__init__(name, groups, collision_groups)
+    def __init__(self, x, y, name, groups, attackabla_sprites):
+        super().__init__(name, groups, attackabla_sprites)
 
 
        # Characteristics
@@ -47,9 +47,6 @@ class Enemy(Fighter):
                 
             else:
                 self.action = 'Idle'
-
-
-            
        
     def run(self):
         self.hitbox.x += self.direction[0] * self.velocity
