@@ -41,32 +41,6 @@ class Player(Fighter):
         
         # Progress
         self.collectible_sprites = collectible_sprites
-        self.killed_enemies = 0
-
-    def player_input(self, screen):
-            keys = pygame.key.get_pressed() 
-
-            if not self.attacking:
-
-                if keys[pygame.K_d]:
-                    self.direction[0] = 1
-                    self.faces_right = True
-                    self.run()
-
-                elif keys[pygame.K_q]:
-                    self.direction[0] = -1
-                    self.faces_right = False
-                    self.run()
-
-                else:
-                    self.direction[0] = 0
-
-                if keys[pygame.K_p]:
-                    self.attack()
-
-
-            if keys[pygame.K_SPACE] and not self.jumping: 
-                self.jump()
                 
     def attack(self):
         self.attacking = True
@@ -99,10 +73,10 @@ class Player(Fighter):
         self.hitbox.x += self.direction[0] * self.velocity
         # Make sure the characters stays on the screen
         if self.hitbox.right >= WIDTH:
-            self.hitbox.right = WIDTH
+          self.hitbox.right = WIDTH
 
         if self.hitbox.left <= 0:
-            self.hitbox.left = 0
+           self.hitbox.left = 0
 
     def jump(self):
         self.jumping = True
@@ -143,8 +117,7 @@ class Player(Fighter):
         # Draw the health bar on the surface
         draw_health_bar(screen, (15, 15), (200, 15), health_ratio) 
 
-    def update(self, screen):
-        self.player_input(screen)
+    def update(self):
         self.apply_gravity()
         self.set_status()
         self.animate()
