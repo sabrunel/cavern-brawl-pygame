@@ -1,4 +1,3 @@
-from tkinter import E
 import pygame
 import random
 
@@ -14,19 +13,6 @@ class Player(Fighter):
     def __init__(self, x, y, name, groups, attackable_sprites, collectible_sprites):
         super().__init__(name, groups, attackable_sprites)
 
-        # Movement
-        self.velocity = 6
-        self.velocity_y = -20
-        self.gravity = 0.9
-        self.direction = pygame.math.Vector2(0,0)
-        self.faces_right = True
-
-        # Status
-        self.jumping = False
-        self.attacking = False
-        self.can_pick_collectible = True
-        
-
         # Characteristics
         self.name = name
         self.max_hp = PLAYER_MAX_HP
@@ -34,30 +20,43 @@ class Player(Fighter):
         self.strength = PLAYER_STRENGTH
         self.damage = self.strength + random.randint(-5,5)
 
-        # Player location
+        # Movement
+        self.velocity = 6
+        self.velocity_y = -20
+        self.gravity = 0.9
+        self.direction = pygame.math.Vector2(0,0)
+        self.faces_right = True
+
+        # Position and hitbox
         self.rect.bottomleft = (x,y)
         self.hitbox = pygame.Rect((self.rect.left + 24, self.rect.top + 50), (42, 75))
         self.attack_rect = pygame.Rect(self.hitbox.left, self.hitbox.top, self.hitbox.width * 2, self.hitbox.height)
         
+        # Status
+        self.jumping = False
+        self.attacking = False
+        self.can_pick_collectible = True
+        self.attack_time = 0
+        self.hit = False
+
         # Progress
         self.collectible_sprites = collectible_sprites
                 
-    def attack(self):
-        self.attacking = True
-        self.attack_time = pygame.time.get_ticks()
 
     def set_status(self):
-        if self.direction[1] != 0:
-            self.action = 'Jump'
+        if self.alive and not self.hit:
+            if self.direction[1] != 0:
+                self.action = 'Jump'
 
-        if self.direction[0] != 0 and not self.jumping: # avoids triggering the running animation while in the air
-            self.action = 'Run'
-            
-        else:
-            self.action = 'Idle'
+            if self.direction[0] != 0 and not self.jumping: # avoids triggering the running animation while in the air
+                self.action = 'Run'
 
-        if self.attacking:
-            self.action = 'Attack'
+            else:
+                self.action = 'Idle'
+
+            if self.attacking:
+                self.action = 'Attack'
+
 
     def apply_gravity(self):
         self.direction[1] += self.gravity
@@ -78,6 +77,10 @@ class Player(Fighter):
         if self.hitbox.left <= 0:
            self.hitbox.left = 0
 
+    def attack(self):
+        self.attacking = True
+        self.attack_time = pygame.time.get_ticks()
+
     def jump(self):
         self.jumping = True
         self.direction[1] = self.velocity_y
@@ -89,8 +92,17 @@ class Player(Fighter):
             self.frame_index += 1
 
         # Make sure we don't go beyond the number of frames in the list
-        if self.frame_index >= len(self.animation_dict[self.action]):
-            self.frame_index = 0
+        if self.frame_index >= len(self.animation_dict[self.action]): 
+            if self.action == 'Death':
+                self.frame_index = len(self.animation_dict[self.action]) - 1
+                self.hitbox.size = (0,0)
+
+            elif self.action == 'Hurt':
+                self.hit = False
+                self.frame_index = 0
+
+            else:
+                self.frame_index = 0
 
         image = self.animation_dict[self.action][self.frame_index]
 
@@ -105,7 +117,6 @@ class Player(Fighter):
             self.rect.top = self.hitbox.top - 50
             self.attack_rect.topright = self.hitbox.topright
             
-    
 
     def draw_health(self, screen):
         # Calculate health ratio

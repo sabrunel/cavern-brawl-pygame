@@ -20,6 +20,7 @@ class Fighter(pygame.sprite.Sprite):
 
         # Creation time
         self.update_time = pygame.time.get_ticks() 
+        self.alive = True
 
     def load_graphics(self):
         self.action_dict = character_animation_frames[self.name]
@@ -35,6 +36,7 @@ class Fighter(pygame.sprite.Sprite):
         
         self.image = self.animation_dict[self.action][self.frame_index]
         self.rect = self.image.get_rect()
+
 
     def hurt(self):
         self.action = 'Hurt' # switch to hurt action

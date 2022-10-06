@@ -2,15 +2,15 @@ import pygame
 import random
 
 # Settings and helper functions
-from settings import enemy_info, WIDTH
+from settings import enemy_info
 from helper import draw_health_bar
 
 # Classes
 from fighter import Fighter
 
 class Enemy(Fighter):
-    def __init__(self, x, y, name, groups, attackabla_sprites):
-        super().__init__(name, groups, attackabla_sprites)
+    def __init__(self, x, y, name, groups, attackable_sprites):
+        super().__init__(name, groups, attackable_sprites)
 
 
        # Characteristics
@@ -18,47 +18,56 @@ class Enemy(Fighter):
         self.strength = enemy_info[self.name]["strength"]
         self.max_hp = enemy_info[self.name]["max_hp"]
         self.hp = self.max_hp
-        self.damage = self.strength + random.randint(-4,4)
-        self.hit = False
+        self.damage = self.strength + random.randint(-2,2)
         
         # Movement
         self.velocity = enemy_info[self.name]["velocity"]
         self.direction = pygame.math.Vector2(0,0)
 
-        # Position and hitboxes
+        # Position and hitbox
         self.start_pos = (x, y + enemy_info[self.name]["y_offset"])
         self.rect.bottomleft = self.start_pos
         self.hitbox = pygame.Rect((self.rect.left + enemy_info[self.name]["hitbox_left_offset"], self.rect.top + enemy_info[self.name]["hitbox_top_offset"]),enemy_info[self.name]["hitbox_size"])
-        self.start_motion()
+        self.player = attackable_sprites.sprite
 
-    def start_motion(self):
-        if self.start_pos[0] >= WIDTH:
-            self.direction[0] = -1
-            self.faces_right = False
+        # Status
+        self.can_attack = True
+        self.attack_time = 0
+        self.attacking = False
+        self.hit = False
 
-        if self.start_pos[0] <= 0:
-            self.direction[0] = 1
-            self.faces_right = True
 
     def set_status(self):
-        if self.alive and not self.hit:
-            if self.direction[0] != 0:
+        if self.alive and not self.hit:             
+            if self.direction[0] != 0 and not self.attacking:
                 self.action = 'Run'
-                
+
             else:
                 self.action = 'Idle'
+            
+            if self.can_attack and self.attacking:
+                self.action = 'Attack'
+
        
     def run(self):
         self.hitbox.x += self.direction[0] * self.velocity
+    
+    def attack(self):
+        self.attack_time = pygame.time.get_ticks()
+        self.attacking = True
+        self.can_attack = False
 
-    def check_direction(self):
-        if self.rect.x >= WIDTH:
+    def check_direction(self): # enemies will move towards the player character
+        if self.hitbox.left > self.player.hitbox.right:
             self.direction[0] = -1
             self.faces_right = False
 
-        if self.rect.x <= 0:
+        elif self.hitbox.right < self.player.hitbox.left:
             self.direction[0] = 1
             self.faces_right = True
+        
+        else:
+            self.direction[0] = 0
 
 
     def animate(self):
@@ -76,6 +85,10 @@ class Enemy(Fighter):
 
             elif self.action == 'Hurt':
                 self.hit = False
+                self.frame_index = 0
+
+            elif self.action == 'Attack':
+                self.attacking = False
                 self.frame_index = 0
 
             else:
