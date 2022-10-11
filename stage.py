@@ -49,7 +49,7 @@ class Stage():
         # Stage status
         self.current_wave = 0
         self.killed_enemies = 0
-        self.outcome = 0
+        self.status = 'Idle'
 
         # Stage variables 
         self.pickup_collectible_time = 0
@@ -95,18 +95,18 @@ class Stage():
     def player_input(self):
         keys = pygame.key.get_pressed() 
 
-        if self.outcome != 0:
+        if self.status != 'Combat':
 
-            if keys[pygame.K_SPACE]:
+            if keys[pygame.K_RETURN]:
                 self.reset_stage()
 
-        else:
+        if self.status != 'Score':
             if keys[pygame.K_d]:
                 self.hero.direction[0] = 1
                 self.hero.faces_right = True
                 self.hero.run()
                         
-                if self.scroll < WIDTH and self.hero.hitbox.right < WIDTH:
+                if self.scroll < WIDTH and self.hero.hurtbox.right < WIDTH:
                     self.scroll += 1
 
             elif keys[pygame.K_q]:
@@ -114,7 +114,7 @@ class Stage():
                 self.hero.faces_right = False
                 self.hero.run()
 
-                if self.scroll > 0 and self.hero.hitbox.left > 0:
+                if self.scroll > 0 and self.hero.hurtbox.left > 0:
                     self.scroll -= 1
 
             else:
@@ -127,40 +127,39 @@ class Stage():
                 self.hero.jump()
 
 
-
     def player_actions(self):
         if self.hero.alive:
             # Attack
-            for sprite in self.attackable_sprites:
-                if self.hero.attacking and not sprite.hit:
-                    if self.hero.attack_rect.colliderect(sprite.hitbox):
+            for enemy in self.attackable_sprites:
+                if self.hero.attacking and not enemy.hit:
+                    if self.hero.hitbox.colliderect(enemy.hurtbox):
                        
                         # Deal damage to the enemy
-                        sprite.hit = True
-                        sprite.hp -= self.hero.damage
-                        #print('hit')
+                        enemy.hit = True
+                        enemy.hp -= self.hero.damage
+                        enemy.hurtbox.x -= enemy.direction[0] * 30 # adds a little push back
                             
                         # Check if the target has died
-                        if sprite.hp < 1:
-                            sprite.hp = 0
-                            sprite.alive = False
+                        if enemy.hp < 1:
+                            enemy.hp = 0
+                            enemy.alive = False
+                            enemy.death()
                             self.killed_enemies += 1
-                            sprite.death()
 
                             # Generate health (20% chances)
                             self.generate_health()
 
                         # Run enemy hurt animation
                         else:
-                            sprite.hurt()
+                            enemy.hurt()
 
                             # Create the damage text
-                            CombatText(sprite.rect.centerx, sprite.rect.y, [self.active_sprites], self.text, str(self.hero.damage), HEALTH_RED)
+                            CombatText(enemy.rect.centerx, enemy.rect.y, [self.active_sprites], self.text, str(self.hero.damage), HEALTH_RED)
                                    
             # Pick up collectible
             if self.hero.can_pick_collectible:
                 for sprite in self.collectible_sprites:
-                    if sprite.rect.colliderect(self.hero.hitbox):
+                    if sprite.rect.colliderect(self.hero.hurtbox):
                         self.pickup_collectible_time = pygame.time.get_ticks()
                         self.hero.can_pick_collectible = False
 
@@ -180,25 +179,29 @@ class Stage():
 
     def enemy_actions(self):
         for enemy in self.attackable_sprites.sprites():
-            if enemy.rect.colliderect(self.hero.hitbox) and enemy.can_attack:
-                enemy.attack()
+            if enemy.hitbox.colliderect(self.hero.hurtbox):
+                if enemy.can_attack:
+                    enemy.attack()
                 
-                # Deal damage to player
-                self.hero.hit = True
-                self.hero.hp -= enemy.damage
+                if pygame.time.get_ticks() - enemy.attack_time > enemy.damage_cooldown and enemy.attacking:
+                    # Reset attack time
+                    enemy.attack_time = 0
+                    # Deal damage to player
+                    self.hero.hit = True
+                    self.hero.hp -= enemy.damage
 
-                # Check if the target has died
-                if self.hero.hp <= 0:
-                    self.hero.death()
-                    self.hero.alive = False
-                    self.outcome = -1
+                    # Check if the target has died
+                    if self.hero.hp <= 0:
+                        self.hero.death()
+                        self.hero.alive = False
+                        self.status = 'Score'
 
                     # Run enemy hurt animation
-                else:
-                    self.hero.hurt()
+                    else:
+                        self.hero.hurt()
 
-                    # Create the damage text
-                    CombatText(self.hero.rect.centerx, self.hero.rect.y, [self.active_sprites], self.text, str(enemy.damage), HEALTH_RED)
+                        # Create the damage text
+                        CombatText(self.hero.rect.centerx, self.hero.rect.y, [self.active_sprites], self.text, str(enemy.damage), HEALTH_RED)
 
     def cooldowns(self):
         # Player attack cooldown
@@ -212,22 +215,23 @@ class Stage():
         # Enemy attack cooldown
         for enemy in self.attackable_sprites.sprites():
             if pygame.time.get_ticks() - enemy.attack_time >= self.enemy_attack_cooldown:
+                enemy.attacking = False
                 enemy.can_attack = True
 
 
-    def end_combat(self):
-            if self.outcome != 0:
-                draw_text(self.display_surface,'Press space to start again', self.text, TEXT_COLOR, 350, 180)
-                if self.outcome == -1:
-                    draw_text(self.display_surface,'DEFEAT', self.title, HEALTH_RED, 320, 100)
+    def stage_status(self):
+            if self.status != 'Combat':
+                draw_text(self.display_surface,'Press enter to start', self.text, TEXT_COLOR, 360, 180)
 
-                #if self.outcome == 1:
-                #   draw_text(self.display_surface,'VICTORY', self.title, HEALTH_GREEN, 300, 100)
+                if self.status == 'Idle':
+                   draw_text(self.display_surface,'JOIN THE BRAWL', self.title, HEALTH_GREEN, 160, 100)
+
+                if self.status == 'Score':
+                    draw_text(self.display_surface,'YOU DIED', self.title, HEALTH_RED, 300, 100)
         
     def reset_stage(self):
-        
         # Reset stage state
-        self.outcome = 0
+        self.status = 'Combat'
         self.current_wave = 0
         self.killed_enemies = 0
 
@@ -243,7 +247,7 @@ class Stage():
 
         self.player_actions()
 
-        if self.outcome == 0:
+        if self.status == 'Combat':
             self.create_wave()
             self.enemy_actions()  
 
@@ -252,21 +256,23 @@ class Stage():
         self.attackable_sprites.update()
         self.collectible_sprites.update()
         self.active_sprites.update()
-        self.end_combat()
+        self.stage_status()
 
        
     def draw(self):
-        # Draw UI elements
-        draw_text(self.display_surface, f'Current wave: {self.current_wave}', self.text, TEXT_COLOR, 730, 15)
-        draw_text(self.display_surface, f'Enemies killed: {self.killed_enemies}', self.text, TEXT_COLOR, 730, 45)
 
-        self.hero.draw_health(self.display_surface)
-        for enemy in self.attackable_sprites.sprites():
-            enemy.draw_health(self.display_surface)
+        # Draw UI elements
+        if self.status == 'Combat':
+            draw_text(self.display_surface, f'Current wave: {self.current_wave}', self.text, TEXT_COLOR, 730, 15)
+            draw_text(self.display_surface, f'Enemies killed: {self.killed_enemies}', self.text, TEXT_COLOR, 730, 45)
+            self.hero.draw_health(self.display_surface)
 
         # Draw fighters
-        self.attackable_sprites.draw(self.display_surface)
         self.hero_sprite.draw(self.display_surface)
+
+        self.attackable_sprites.draw(self.display_surface)
+        for enemy in self.attackable_sprites.sprites():
+            enemy.draw_health(self.display_surface)
 
         # Draw collectibles
         self.collectible_sprites.draw(self.display_surface)
@@ -274,10 +280,13 @@ class Stage():
         # Draw other active sprites
         self.active_sprites.draw(self.display_surface)
 
-        # Draw hitboxes
-        #pygame.draw.rect(self.display_surface, "red", self.hero.hitbox, 2)
-        #for enemy in self.attackable_sprites.sprites():
-        #   pygame.draw.rect(self.display_surface, "red", enemy.hitbox, 2)
+        # Draw collisionboxes
+        # pygame.draw.rect(self.display_surface, "green", self.hero.hurtbox, 2)
+        # pygame.draw.rect(self.display_surface, "red", self.hero.hitbox, 2)
+        # for enemy in self.attackable_sprites.sprites():
+            # pygame.draw.rect(self.display_surface, "green", enemy.hurtbox, 2)
+            # pygame.draw.rect(self.display_surface, "red", enemy.hitbox, 2)
+           
 
         
     def run(self):

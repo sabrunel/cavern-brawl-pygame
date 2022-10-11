@@ -2,7 +2,7 @@ import pygame
 import random
 
 # Settings and helper functions
-from settings import PLAYER_MAX_HP, PLAYER_STRENGTH, GROUND_Y, WIDTH
+from settings import GROUND_Y, WIDTH
 from helper import draw_health_bar
 
 # Classes
@@ -11,27 +11,16 @@ from fighter import Fighter
 
 class Player(Fighter):
     def __init__(self, x, y, name, groups, attackable_sprites, collectible_sprites):
-        super().__init__(name, groups, attackable_sprites)
+        super().__init__(x, y, name, groups, attackable_sprites)
 
         # Characteristics
-        self.name = name
-        self.max_hp = PLAYER_MAX_HP
         self.hp = self.max_hp
-        self.strength = PLAYER_STRENGTH
         self.damage = self.strength + random.randint(-5,5)
 
-        # Movement
-        self.velocity = 6
+        # Vertical movement
         self.velocity_y = -20
         self.gravity = 0.9
-        self.direction = pygame.math.Vector2(0,0)
-        self.faces_right = True
 
-        # Position and hitbox
-        self.rect.bottomleft = (x,y)
-        self.hitbox = pygame.Rect((self.rect.left + 24, self.rect.top + 50), (42, 75))
-        self.attack_rect = pygame.Rect(self.hitbox.left, self.hitbox.top, self.hitbox.width * 2, self.hitbox.height)
-        
         # Status
         self.jumping = False
         self.attacking = False
@@ -39,7 +28,7 @@ class Player(Fighter):
         self.attack_time = 0
         self.hit = False
 
-        # Progress
+        # Collision sprites
         self.collectible_sprites = collectible_sprites
                 
 
@@ -60,7 +49,7 @@ class Player(Fighter):
 
     def apply_gravity(self):
         self.direction[1] += self.gravity
-        self.hitbox.y += self.direction[1]
+        self.hurtbox.y += self.direction[1]
 
          # Check collision with the ground
         if self.rect.bottom >= GROUND_Y:
@@ -69,54 +58,22 @@ class Player(Fighter):
             self.direction[1] = 0
 
     def run(self):
-        self.hitbox.x += self.direction[0] * self.velocity
+        self.hurtbox.x += self.direction[0] * self.velocity
         # Make sure the characters stays on the screen
-        if self.hitbox.right >= WIDTH:
-          self.hitbox.right = WIDTH
+        if self.hurtbox.right >= WIDTH:
+          self.hurtbox.right = WIDTH
 
-        if self.hitbox.left <= 0:
-           self.hitbox.left = 0
+        if self.hurtbox.left <= 0:
+           self.hurtbox.left = 0
 
     def attack(self):
-        self.attacking = True
         self.attack_time = pygame.time.get_ticks()
+        self.attacking = True
+        
 
     def jump(self):
         self.jumping = True
         self.direction[1] = self.velocity_y
-
-    def animate(self):
-        # Move through the animation frames  
-        if pygame.time.get_ticks() - self.update_time > self.animation_cooldown:
-            self.update_time = pygame.time.get_ticks()
-            self.frame_index += 1
-
-        # Make sure we don't go beyond the number of frames in the list
-        if self.frame_index >= len(self.animation_dict[self.action]): 
-            if self.action == 'Death':
-                self.frame_index = len(self.animation_dict[self.action]) - 1
-                self.hitbox.size = (0,0)
-
-            elif self.action == 'Hurt':
-                self.hit = False
-                self.frame_index = 0
-
-            else:
-                self.frame_index = 0
-
-        image = self.animation_dict[self.action][self.frame_index]
-
-        if self.faces_right:
-            self.image = image
-            self.rect.left = self.hitbox.left - 24
-            self.rect.top = self.hitbox.top - 50
-            self.attack_rect.topleft = self.hitbox.topleft
-        else:
-            self.image = pygame.transform.flip(image, True, False)
-            self.rect.right = self.hitbox.right + 24
-            self.rect.top = self.hitbox.top - 50
-            self.attack_rect.topright = self.hitbox.topright
-            
 
     def draw_health(self, screen):
         # Calculate health ratio
