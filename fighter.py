@@ -5,7 +5,7 @@ from settings import character_animation_frames, fighter_info
 
 # Fighter class
 class Fighter(pygame.sprite.Sprite):
-    def __init__(self, x, y, name, groups, attackable_sprites):
+    def __init__(self, x, y, name, groups):
         super().__init__(groups)
         self.name = name
 
@@ -13,10 +13,7 @@ class Fighter(pygame.sprite.Sprite):
         self.action = 'Idle'
         self.frame_index = 0
         self.load_graphics()
-        self.animation_cooldown = 80
-
-        # Group setup
-        self.attackable_sprites = attackable_sprites
+        self.animation_cooldown = 90
 
         # Core characteristics 
         self.strength = fighter_info[self.name]["strength"]
@@ -79,7 +76,7 @@ class Fighter(pygame.sprite.Sprite):
                 elif self.action == 'Hurt':
                     self.hit = False
                     self.frame_index = 0
-
+                    
                 else:
                     self.frame_index = 0
 

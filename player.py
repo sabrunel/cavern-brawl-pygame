@@ -10,27 +10,25 @@ from fighter import Fighter
 
 
 class Player(Fighter):
-    def __init__(self, x, y, name, groups, attackable_sprites, collectible_sprites):
-        super().__init__(x, y, name, groups, attackable_sprites)
+    def __init__(self, x, y, name, groups):
+        super().__init__(x, y, name, groups)
 
         # Characteristics
         self.hp = self.max_hp
-        self.damage = self.strength + random.randint(-5,5)
+        self.damage = self.strength + random.randint(-3,3)
 
-        # Vertical movement
+        # Special movement
         self.velocity_y = -20
         self.gravity = 0.9
 
         # Status
         self.jumping = False
-        self.attacking = False
+        self.attack_choice = 'Attack'
+        self.attacking_melee = False
+        self.attacking_range = False
         self.can_pick_collectible = True
         self.attack_time = 0
         self.hit = False
-
-        # Collision sprites
-        self.collectible_sprites = collectible_sprites
-                
 
     def set_status(self):
         if self.alive and not self.hit:
@@ -43,8 +41,15 @@ class Player(Fighter):
             else:
                 self.action = 'Idle'
 
-            if self.attacking:
-                self.action = 'Attack'
+            # Attack status
+            if self.attacking_melee and not self.jumping:
+                self.action = self.attack_choice
+            
+            elif self.attacking_melee and self.jumping:
+                self.action = 'AttackUp'
+                
+            if self.attacking_range:
+                self.action = 'RangedAttack'
 
 
     def apply_gravity(self):
@@ -66,10 +71,15 @@ class Player(Fighter):
         if self.hurtbox.left <= 0:
            self.hurtbox.left = 0
 
-    def attack(self):
+    def melee_attack(self):
         self.attack_time = pygame.time.get_ticks()
-        self.attacking = True
-        
+        self.attacking_melee = True
+        self.frame_index = 0
+
+    def ranged_attack(self):
+        self.attack_time = pygame.time.get_ticks()
+        self.attacking_range = True
+        self.frame_index = 0
 
     def jump(self):
         self.jumping = True

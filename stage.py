@@ -7,8 +7,9 @@ from helper import draw_text
 
 # Classes
 from player import Player
-from enemy import Enemy
+from enemy import Enemy, Bat
 from collectible import Collectible
+from projectile import Dagger, Orb
 from combattext import CombatText
 
 
@@ -32,11 +33,16 @@ class Stage():
         # Creation time
         self.update_time = pygame.time.get_ticks()
 
-        # Sprite and sprite groups setup
+        # Sprite groups setup
+        self.ui_sprites = pygame.sprite.Group()
         self.hero_sprite = pygame.sprite.GroupSingle()
         self.attackable_sprites = pygame.sprite.Group() 
         self.collectible_sprites = pygame.sprite.Group()
-        self.active_sprites = pygame.sprite.Group()
+        self.player_projectile_sprites = pygame.sprite.Group()
+        self.enemy_projectile_sprites = pygame.sprite.Group()
+        self.ranged_enemy_sprites = pygame.sprite.Group()
+        self.melee_enemy_sprites = pygame.sprite.Group()
+      
         self.create_player_character()
 
         # UI elements
@@ -49,13 +55,14 @@ class Stage():
         # Stage status
         self.current_wave = 0
         self.killed_enemies = 0
+        self.best_score = 0
         self.status = 'Idle'
 
         # Stage variables 
         self.pickup_collectible_time = 0
         self.pickup_collectible_cooldown = 400
-        self.hero_attack_cooldown = 400
-        self.enemy_attack_cooldown = 900
+        self.hero_attack_cooldown = 630
+        self.enemy_attack_cooldown = 630
         
 
     def draw_background(self):
@@ -71,7 +78,7 @@ class Stage():
         
 
     def create_player_character(self):
-        Player(150, GROUND_Y, 'Hero', [self.hero_sprite], self.attackable_sprites, self.collectible_sprites)
+        Player(150, GROUND_Y, 'Hero', [self.hero_sprite])
         self.hero = self.hero_sprite.sprite
 
     def create_wave(self):
@@ -83,15 +90,21 @@ class Stage():
                 y = random.randint(100,300)
                 enemy_name = random.choice(["Bat", "Monster", "PlagueDoctor"])
                 start_position = random.choice([WIDTH + x * y, -x * y])
-                Enemy(start_position, GROUND_Y, enemy_name, [self.attackable_sprites], self.hero_sprite)
+
+                if enemy_name == 'Bat':
+                    Bat(start_position, GROUND_Y, enemy_name, [self.attackable_sprites, self.ranged_enemy_sprites], self.hero_sprite)
+                
+                else:
+                    Enemy(start_position, GROUND_Y, enemy_name, [self.attackable_sprites, self.melee_enemy_sprites], self.hero_sprite)
+
             
 
     def generate_health(self):
         roll = 5
-
         if random.randint(1,5) == roll:
-            Collectible(random.randint(100,WIDTH - 100), random.randint(230,480), self.collectible_sprites, self.hero_sprite)
-
+            Collectible(random.randint(100,WIDTH - 100), random.randint(230,480), 'Health', self.collectible_sprites)
+  
+    
     def player_input(self):
         keys = pygame.key.get_pressed() 
 
@@ -120,8 +133,13 @@ class Stage():
             else:
                 self.hero.direction[0] = 0
 
-            if keys[pygame.K_p]:
-                self.hero.attack()
+            if keys[pygame.K_p] and not self.hero.attacking_melee:
+                self.hero.attack_choice = random.choice(['Attack', 'Attack2','Attack3'])
+                self.hero.melee_attack()
+
+            if keys[pygame.K_o] and not self.hero.attacking_range:
+                self.hero.ranged_attack()
+                Dagger(self.hero.hurtbox.centerx, self.hero.hurtbox.centery, 'Dagger', self.player_projectile_sprites, self.hero.faces_right)
 
             if keys[pygame.K_SPACE] and not self.hero.jumping: 
                 self.hero.jump()
@@ -129,84 +147,129 @@ class Stage():
 
     def player_actions(self):
         if self.hero.alive:
-            # Attack
-            for enemy in self.attackable_sprites:
-                if self.hero.attacking and not enemy.hit:
+
+            # Is hit by an enemy projectile
+            for enemy in self.ranged_enemy_sprites.sprites():
+                for projectile in self.enemy_projectile_sprites.sprites():
+                    if projectile.rect.colliderect(self.hero.hurtbox):
+                        self.enemy_hits_player(enemy)
+                        self.enemy_projectile_sprites.remove(projectile)
+
+            # Attacks
+            for enemy in self.attackable_sprites.sprites():
+                if self.hero.attacking_melee and not enemy.hit:
                     if self.hero.hitbox.colliderect(enemy.hurtbox):
-                       
-                        # Deal damage to the enemy
-                        enemy.hit = True
-                        enemy.hp -= self.hero.damage
                         enemy.hurtbox.x -= enemy.direction[0] * 30 # adds a little push back
-                            
-                        # Check if the target has died
-                        if enemy.hp < 1:
-                            enemy.hp = 0
-                            enemy.alive = False
-                            enemy.death()
-                            self.killed_enemies += 1
+                        self.player_hits_enemy(enemy)
+                                 
 
-                            # Generate health (20% chances)
-                            self.generate_health()
-
-                        # Run enemy hurt animation
-                        else:
-                            enemy.hurt()
-
-                            # Create the damage text
-                            CombatText(enemy.rect.centerx, enemy.rect.y, [self.active_sprites], self.text, str(self.hero.damage), HEALTH_RED)
-                                   
-            # Pick up collectible
+            # Picks up collectible
             if self.hero.can_pick_collectible:
-                for sprite in self.collectible_sprites:
+                for sprite in self.collectible_sprites.sprites():
                     if sprite.rect.colliderect(self.hero.hurtbox):
+                        self.player_picks_collectible(sprite)
                         self.pickup_collectible_time = pygame.time.get_ticks()
                         self.hero.can_pick_collectible = False
 
-                         # Health check (to use collectible)
-                        if self.hero.max_hp - self.hero.hp > HEAL_EFFECT:
-                            heal_amount = HEAL_EFFECT
-
-                        else:
-                            heal_amount = self.hero.max_hp - self.hero.hp
-
-                        self.hero.hp += heal_amount
-                        sprite.kill()
-
-                        # Create the healing text
-                        CombatText(self.hero.rect.centerx, self.hero.rect.y, [self.active_sprites], self.text, str(heal_amount), HEALTH_GREEN)
-
-
+                
     def enemy_actions(self):
         for enemy in self.attackable_sprites.sprites():
-            if enemy.hitbox.colliderect(self.hero.hurtbox):
-                if enemy.can_attack:
-                    enemy.attack()
+            if enemy.alive:
+                # Is hit by a player projectile
+                for projectile in self.player_projectile_sprites:
+                    if projectile.rect.colliderect(enemy.hurtbox) and not enemy.hit:
+                        self.player_hits_enemy(enemy)
+                        self.player_projectile_sprites.remove(projectile)
+
+                # Attacks within melee range
+                if enemy.hitbox.colliderect(self.hero.hurtbox):
+                    if enemy.alive and enemy.can_attack:
+                        enemy.melee_attack()    
+                    
+                    if pygame.time.get_ticks() - enemy.attack_time > enemy.damage_cooldown and enemy.attacking:
+                        self.enemy_hits_player(enemy)
+                        enemy.attack_time = 0      
                 
-                if pygame.time.get_ticks() - enemy.attack_time > enemy.damage_cooldown and enemy.attacking:
-                    # Reset attack time
-                    enemy.attack_time = 0
-                    # Deal damage to player
-                    self.hero.hit = True
-                    self.hero.hp -= enemy.damage
+        # Drops an orb
+        for enemy in self.ranged_enemy_sprites.sprites():
+            if enemy.alive and enemy.can_shoot:
+                Orb(enemy.hurtbox.left, enemy.hurtbox.top, 'Orb', self.enemy_projectile_sprites)
+                enemy.can_shoot = False
 
-                    # Check if the target has died
-                    if self.hero.hp <= 0:
-                        self.hero.death()
-                        self.hero.alive = False
-                        self.status = 'Score'
 
-                    # Run enemy hurt animation
-                    else:
-                        self.hero.hurt()
+    def player_hits_enemy(self, enemy):
+        #  Deal damage
+        enemy.hit = True
+        enemy.hp -= self.hero.damage
 
-                        # Create the damage text
-                        CombatText(self.hero.rect.centerx, self.hero.rect.y, [self.active_sprites], self.text, str(enemy.damage), HEALTH_RED)
+        # Check if the target has died
+        if enemy.hp < 1:
+            enemy.hp = 0
+            enemy.alive = False
+            enemy.death()
+            self.killed_enemies += 1
+
+            # Generate health (20% chance)
+            self.generate_health()
+
+        # Run enemy hurt animation
+        else:
+            enemy.hurt()
+
+            # Create the damage text
+            CombatText(enemy.rect.centerx, enemy.rect.y, [self.ui_sprites], self.text, str(self.hero.damage), HEALTH_RED)
+
+    def enemy_hits_player(self,enemy):
+        # Deal damage to player
+        self.hero.hit = True
+        self.hero.hp -= enemy.damage
+
+        # Check if the player has died
+        if self.hero.hp <= 0:
+            self.hero.death()
+            self.hero.alive = False
+
+            # Display score screen
+            self.status = 'Score'
+            self.update_max_score()
+
+        # Run player hurt animation
+        else:
+            self.hero.hurt()
+
+            # Create the damage text
+            CombatText(self.hero.rect.centerx, self.hero.rect.y, [self.ui_sprites], self.text, str(enemy.damage), HEALTH_RED)
+
+    def player_picks_collectible(self, collectible):
+        # Health check (to use collectible)
+        if self.hero.max_hp - self.hero.hp > HEAL_EFFECT:
+            heal_amount = HEAL_EFFECT
+
+        else:
+            heal_amount = self.hero.max_hp - self.hero.hp
+
+        self.hero.hp += heal_amount
+        self.collectible_sprites.remove(collectible)
+
+        # Create the healing text
+        CombatText(self.hero.rect.centerx, self.hero.rect.y, [self.ui_sprites], self.text, str(heal_amount), HEALTH_GREEN)
+
+    def clean_projectiles(self):
+        # Player projectiles
+        for projectile in self.player_projectile_sprites:
+            if projectile.rect.x > WIDTH or projectile.rect.x < 0:
+                self.player_projectile_sprites.remove(projectile)
+
+        # Enemy projectiles
+        for projectile in self.enemy_projectile_sprites:
+            if projectile.rect.y > HEIGHT:
+                self.enemy_projectile_sprites.remove(projectile)
 
     def cooldowns(self):
         # Player attack cooldown
         if pygame.time.get_ticks() - self.hero.attack_time >= self.hero_attack_cooldown:
-            self.hero.attacking = False
+            self.hero.attacking_melee = False
+            self.hero.attacking_range = False
 
         # Collectible cooldown
         if pygame.time.get_ticks() - self.pickup_collectible_time >= self.pickup_collectible_cooldown:
@@ -219,6 +282,10 @@ class Stage():
                 enemy.can_attack = True
 
 
+    def update_max_score(self):
+        if self.killed_enemies >= self.best_score:
+            self.best_score = self.killed_enemies
+
     def stage_status(self):
             if self.status != 'Combat':
                 draw_text(self.display_surface,'Press enter to start', self.text, TEXT_COLOR, 360, 180)
@@ -228,6 +295,7 @@ class Stage():
 
                 if self.status == 'Score':
                     draw_text(self.display_surface,'YOU DIED', self.title, HEALTH_RED, 300, 100)
+                    draw_text(self.display_surface, f'Score: {self.killed_enemies}', self.text, TEXT_COLOR, 420, 50)
         
     def reset_stage(self):
         # Reset stage state
@@ -240,11 +308,13 @@ class Stage():
 
         # Make sure to remove any remaining enemy before creating a new wave
         for enemy in self.attackable_sprites.sprites():
-            enemy.kill()
+            self.attackable_sprites.remove(enemy)
+
+        # Clear any projectile remaining on the screen
+        self.clean_projectiles()
 
                 
     def update(self):
-
         self.player_actions()
 
         if self.status == 'Combat':
@@ -252,33 +322,40 @@ class Stage():
             self.enemy_actions()  
 
         self.cooldowns()
+        self.clean_projectiles()
         self.hero_sprite.update()
         self.attackable_sprites.update()
         self.collectible_sprites.update()
-        self.active_sprites.update()
+        self.player_projectile_sprites.update()
+        self.enemy_projectile_sprites.update()
+        self.ui_sprites.update()
         self.stage_status()
 
        
     def draw(self):
-
         # Draw UI elements
         if self.status == 'Combat':
             draw_text(self.display_surface, f'Current wave: {self.current_wave}', self.text, TEXT_COLOR, 730, 15)
             draw_text(self.display_surface, f'Enemies killed: {self.killed_enemies}', self.text, TEXT_COLOR, 730, 45)
+            draw_text(self.display_surface, f'Best score: {self.best_score}', self.text, TEXT_COLOR, 730, 75)
             self.hero.draw_health(self.display_surface)
-
-        # Draw fighters
-        self.hero_sprite.draw(self.display_surface)
-
-        self.attackable_sprites.draw(self.display_surface)
-        for enemy in self.attackable_sprites.sprites():
-            enemy.draw_health(self.display_surface)
 
         # Draw collectibles
         self.collectible_sprites.draw(self.display_surface)
 
+        # Draw fighters
+        self.attackable_sprites.draw(self.display_surface)
+        for enemy in self.attackable_sprites.sprites():
+            enemy.draw_health(self.display_surface)
+
+        self.hero_sprite.draw(self.display_surface)
+
+        # Draw projectiles
+        self.player_projectile_sprites.draw(self.display_surface)
+        self.enemy_projectile_sprites.draw(self.display_surface)
+
         # Draw other active sprites
-        self.active_sprites.draw(self.display_surface)
+        self.ui_sprites.draw(self.display_surface)
 
         # Draw collisionboxes
         # pygame.draw.rect(self.display_surface, "green", self.hero.hurtbox, 2)
@@ -288,7 +365,6 @@ class Stage():
             # pygame.draw.rect(self.display_surface, "red", enemy.hitbox, 2)
            
 
-        
     def run(self):
         self.player_input()
         self.draw_background()

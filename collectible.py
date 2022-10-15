@@ -2,10 +2,10 @@ import pygame
 from settings import collectible_animation_frames
 
 class Collectible(pygame.sprite.Sprite):
-    def __init__(self, x, y, groups, collision_sprites):
+    def __init__(self, x, y, name, groups):
         pygame.sprite.Sprite.__init__(self, groups)
-        self.name = 'Health'
-
+        self.name = name
+        
         # Animation
         self.frame_index = 0
         self.load_graphics()
@@ -15,9 +15,6 @@ class Collectible(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.bottomleft = (x,y)
         self.counter = 0
-
-        # Sprite group setup
-        self.collision_sprites = collision_sprites
 
         # Creation time
         self.update_time = pygame.time.get_ticks()
@@ -49,11 +46,10 @@ class Collectible(pygame.sprite.Sprite):
 
         self.image = self.animation_dict[self.name][self.frame_index]
 
-    def update(self): # override the inherited update method
-        # Delete the collectible after a few seconds
+    def update(self):
         self.counter += 1
 
-        # Run the animation
+        # Delete the collectible after a few seconds
         if self.counter > 300:
             self.kill()
         else:

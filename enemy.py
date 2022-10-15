@@ -3,13 +3,14 @@ import random
 
 # Settings and helper functions
 from helper import draw_health_bar
+from settings import WIDTH
 
 # Classes
 from fighter import Fighter
 
 class Enemy(Fighter):
-    def __init__(self, x, y, name, groups, attackable_sprites):
-        super().__init__(x, y, name, groups, attackable_sprites)
+    def __init__(self, x, y, name, groups, player):
+        super().__init__(x, y, name, groups)
 
        # Characteristics 
         self.hp = self.max_hp
@@ -25,7 +26,7 @@ class Enemy(Fighter):
         self.damage_cooldown = 500
 
         # Collision sprites
-        self.player = attackable_sprites.sprite
+        self.player = player.sprite
 
 
     def set_status(self):
@@ -43,10 +44,11 @@ class Enemy(Fighter):
     def run(self):
         self.hurtbox.x += self.direction[0] * self.velocity
     
-    def attack(self):
+    def melee_attack(self):
         self.attack_time = pygame.time.get_ticks()
         self.attacking = True
         self.can_attack = False
+        self.frame_index = 0
 
     def check_direction(self): # enemies will move towards the player character
         if self.hurtbox.left > self.player.hurtbox.right:
@@ -81,3 +83,40 @@ class Enemy(Fighter):
         self.run()
         self.set_status()
         self.animate()
+
+
+class Bat(Enemy):
+    def __init__(self, x, y, name, groups, attackable_sprites):
+        super().__init__(x, y, name, groups, attackable_sprites)
+
+        # Attack status
+        self.can_shoot = False
+        self.counter = 0
+    
+    def check_direction(self):
+        if self.hurtbox.left > WIDTH:
+            self.direction[0] = -1
+            self.faces_right = False
+
+        elif self.hurtbox.right < 0:
+            self.direction[0] = 1
+            self.faces_right = True
+
+    def ranged_attack(self):
+        if self.alive:
+            self.counter += 1
+
+            if self.counter > 320:
+                self.attacking = True # start the attack animation before dropping the orb
+
+            if self.counter > 400:
+                self.can_shoot = True
+                self.counter = 0
+                    
+    def update(self):
+        self.check_direction()
+        self.ranged_attack()
+        self.run()
+        self.set_status()
+        self.animate()
+
