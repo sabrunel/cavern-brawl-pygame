@@ -23,6 +23,11 @@ projectile_animation_frames = {
     'Orb' : 4,
 }
 
+particle_animation_frames = {
+    'Attack': 5,
+    'RangedAttack': 3,
+}
+
 character_animation_frames =  { # Number of images per animation
     'Hero': {'Idle': 9, 'Run': 8, 'Jump': 4, 'Attack': 7, 'Attack2': 7, 'Attack3': 7, 'AttackUp': 7, 'RangedAttack': 7, 'Hurt': 3,'Death':7,},
     'Bat': {'Idle': 9,'Run': 9,'Attack': 7,'Hurt': 3,'Death':7,},

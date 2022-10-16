@@ -21,6 +21,9 @@ class Player(Fighter):
         self.velocity_y = -20
         self.gravity = 0.9
 
+        # Sounds
+        self.load_sounds()
+
         # Status
         self.jumping = False
         self.attack_choice = 'Attack'
@@ -29,6 +32,10 @@ class Player(Fighter):
         self.can_pick_collectible = True
         self.attack_time = 0
         self.hit = False
+
+    def load_sounds(self):
+        self.attack_sound = pygame.mixer.Sound('sounds/Attack.wav')
+        self.ranged_attack_sound = pygame.mixer.Sound('sounds/RangedAttack.wav')
 
     def set_status(self):
         if self.alive and not self.hit:
@@ -75,11 +82,13 @@ class Player(Fighter):
         self.attack_time = pygame.time.get_ticks()
         self.attacking_melee = True
         self.frame_index = 0
+        self.attack_sound.play()
 
     def ranged_attack(self):
         self.attack_time = pygame.time.get_ticks()
         self.attacking_range = True
         self.frame_index = 0
+        self.ranged_attack_sound.play()
 
     def jump(self):
         self.jumping = True

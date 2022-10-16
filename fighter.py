@@ -2,8 +2,6 @@ import pygame
 from settings import character_animation_frames, fighter_info
 
 
-
-# Fighter class
 class Fighter(pygame.sprite.Sprite):
     def __init__(self, x, y, name, groups):
         super().__init__(groups)
