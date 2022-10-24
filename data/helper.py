@@ -1,5 +1,5 @@
 import pygame
-from settings import *
+from .settings import *
 
 def draw_text(screen, text, font, text_color, x, y):
     """ 

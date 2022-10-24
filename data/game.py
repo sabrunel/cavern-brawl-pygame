@@ -1,6 +1,6 @@
 import pygame, sys
-from settings import *
-from stage import Stage
+from .settings import *
+from .stage import Stage
 
 
 class Game:

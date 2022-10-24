@@ -1,5 +1,5 @@
 import pygame
-from settings import projectile_animation_frames, projectile_info
+from .settings import projectile_animation_frames, projectile_info, GRAPHICS_DIR
 
 class Projectile(pygame.sprite.Sprite):
     def __init__(self, x, y, name, groups):
@@ -29,7 +29,7 @@ class Projectile(pygame.sprite.Sprite):
         for projectile in self.projectile_dict.keys():
             temp_list = []
             for i in range(1, self.projectile_dict[projectile] + 1):
-                img = pygame.image.load(f'assets/projectiles/{projectile}/0{i}.png')
+                img = pygame.image.load(GRAPHICS_DIR + f'projectiles/{projectile}/0{i}.png')
                 img = pygame.transform.scale(img, (img.get_width() * 2, img.get_height() * 2))
                 temp_list.append(img)
             self.animation_dict.update({projectile : temp_list})

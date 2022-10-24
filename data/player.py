@@ -2,11 +2,11 @@ import pygame
 import random
 
 # Settings and helper functions
-from settings import GROUND_Y, WIDTH
-from helper import draw_health_bar
+from .settings import GROUND_Y, WIDTH, SOUNDS_DIR
+from .helper import draw_health_bar
 
 # Classes
-from fighter import Fighter
+from .fighter import Fighter
 
 
 class Player(Fighter):
@@ -34,8 +34,8 @@ class Player(Fighter):
         self.hit = False
 
     def load_sounds(self):
-        self.attack_sound = pygame.mixer.Sound('sounds/Attack.wav')
-        self.ranged_attack_sound = pygame.mixer.Sound('sounds/RangedAttack.wav')
+        self.attack_sound = pygame.mixer.Sound(SOUNDS_DIR + 'Attack.wav')
+        self.ranged_attack_sound = pygame.mixer.Sound(SOUNDS_DIR + 'RangedAttack.wav')
 
     def set_status(self):
         if self.alive and not self.hit:

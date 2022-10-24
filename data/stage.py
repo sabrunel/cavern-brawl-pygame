@@ -2,16 +2,16 @@ import pygame
 import random
 
 # Settings and helper functions
-from settings import *
-from helper import draw_text
+from .settings import *
+from .helper import draw_text
 
 # Classes
-from player import Player
-from enemy import Enemy, Bat
-from collectible import Collectible
-from projectile import Dagger, Orb
-from combattext import CombatText
-from particles import Particle
+from .player import Player
+from .enemy import Enemy, Bat
+from .collectible import Collectible
+from .projectile import Dagger, Orb
+from .combattext import CombatText
+from .particles import Particle
 
 
 class Stage():
@@ -23,11 +23,11 @@ class Stage():
 
         self.bg_img_list = []
         for i in range(1,3):
-            img = pygame.image.load(f'assets/background/bg{i}.png').convert_alpha()
+            img = pygame.image.load(GRAPHICS_DIR + f'background/bg{i}.png').convert_alpha()
             img_scale = pygame.transform.scale(img,(img.get_width() * 2, img.get_height() * 2))
             self.bg_img_list.append(img_scale)
 
-        fg_img = pygame.image.load('assets/background/fg.png').convert_alpha()
+        fg_img = pygame.image.load(GRAPHICS_DIR + 'background/fg.png').convert_alpha()
         self.fg_img = pygame.transform.scale(fg_img,(fg_img.get_width() * 2, fg_img.get_height() * 2))
         self.scroll = 150
 
@@ -46,8 +46,8 @@ class Stage():
         self.create_player_character()
 
         # UI elements
-        self.text = pygame.font.Font(FONT_NAME, FONT_SIZE)
-        self.title = pygame.font.Font(FONT_NAME, TITLE_SIZE)
+        self.text = pygame.font.Font(FONTS_DIR + FONT_NAME, FONT_SIZE)
+        self.title = pygame.font.Font(FONTS_DIR + FONT_NAME, TITLE_SIZE)
 
         # Wave control
         self.wave_cooldown = 8000 + random.randint(0,8000)

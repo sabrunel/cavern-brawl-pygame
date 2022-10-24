@@ -2,11 +2,11 @@ import pygame
 import random
 
 # Settings and helper functions
-from helper import draw_health_bar
-from settings import WIDTH
+from .helper import draw_health_bar
+from .settings import WIDTH
 
 # Classes
-from fighter import Fighter
+from .fighter import Fighter
 
 class Enemy(Fighter):
     def __init__(self, x, y, name, groups, player):

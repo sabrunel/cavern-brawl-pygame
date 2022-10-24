@@ -2,7 +2,7 @@
 
 This project was initially inspired by the tutorial series from [Coding With Russ](https://www.youtube.com/playlist?list=PLjcN1EyupaQnvpv61iriF8Ax9dKra-MhZ) on Youtube, creating a Final Fantasy style RPG battle game with Pygame.
 
-It was a simple turn-based combat game where a cute red-haired hero faces pairs of random enemies in a gloomy cavern setting.
+It was a simple turn-based combat game where a cute red-haired hero faced pairs of random enemies in a gloomy cavern setting.
 
 But... The game wasn't that fun.
 
@@ -14,7 +14,7 @@ Here comes **Cavern Brawl**, a hack and slash where waves of enemies will keep c
 
 ### Resources
 
-All assets used so far for this game come from [Szadiart's platformer set](https://szadiart.itch.io/rocky-world-platformer-set).
+All graphics used so far for this game come from [Szadiart's platformer set](https://szadiart.itch.io/rocky-world-platformer-set).
 
 ### Requirements
 
@@ -34,7 +34,7 @@ Then simply type:
 
 **Controls:**
 
-- Q - S: move left and right
+- Q - S: move left and right (*French keyboard* :))
 - SPACE: jump
 - Left mouse: melee attack
 - Right mouse: Ranged attack

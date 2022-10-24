@@ -3,13 +3,17 @@
 WIDTH = 960
 HEIGHT = 540
 
+# Assets directories
+GRAPHICS_DIR = 'assets/graphics/'
+SOUNDS_DIR = 'assets/sounds/'
+FONTS_DIR = 'assets/fonts/'
 
 # Frame rate
 FPS = 60
 
 # Text
 TEXT_COLOR = (253, 253, 218)
-FONT_NAME = 'font/manaspc.ttf'
+FONT_NAME = 'manaspc.ttf'
 FONT_SIZE = 16
 TITLE_SIZE = 70
 
